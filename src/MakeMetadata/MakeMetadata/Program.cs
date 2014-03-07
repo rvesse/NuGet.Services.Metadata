@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Packaging;
@@ -10,11 +12,11 @@ namespace MakeMetadata
 {
     class Program
     {
-        static string ConnectionString;
-        static string BaseAddress;
-
-        static void PublishPackage(Stream stream)
+        static void PublishPackage(Stream stream, string connectionString, string publishContainer)
         {
+            CloudStorageAccount account = CloudStorageAccount.Parse(connectionString);
+            string baseAddress = String.Format("{0}{1}", account.BlobEndpoint, publishContainer);
+
             // BEGIN
 
             // (1)
@@ -35,15 +37,15 @@ namespace MakeMetadata
 
             // (5)
 
-            Utils.SavePlan(executionPlan, ConnectionString);
+            Utils.SavePlan(executionPlan, connectionString, publishContainer);
 
             // (6)
 
-            List<Tuple<IGraph, string, string>> metadata = Utils.GetDocuments(nuspec, executionPlan, BaseAddress);
+            List<Tuple<IGraph, string, string>> metadata = Utils.GetDocuments(nuspec, executionPlan, baseAddress);
 
             // (7)
 
-            Utils.PublishMetadata(metadata, ConnectionString);
+            Utils.PublishMetadata(metadata, connectionString, publishContainer);
 
             // END
         }
@@ -52,22 +54,15 @@ namespace MakeMetadata
         {
             try
             {
-                if (args.Length != 2)
+                if (args.Length != 1)
                 {
-                    Console.WriteLine("Enter connection string and base address");
+                    Console.WriteLine("Enter connection string");
                     return;
                 }
-                else
-                {
-                    ConnectionString = args[0];
-                    BaseAddress = args[1];
-                }
-
-                //ProcessReceived(ProcessPackage);
 
                 while (true)
                 {
-                    Utils.ProcessReceived(PublishPackage, ConnectionString);
+                    Utils.ProcessReceived(PublishPackage, args[0], "received", "pub");
                     Thread.Sleep(3 * 1000);
                 }
 
