@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Catalog.Collecting.Test
+namespace NuGet.Services.Metadata.Catalog.Collecting.Test
 {
     public class CountCollector : Collector
     {
@@ -27,7 +27,7 @@ namespace Catalog.Collecting.Test
 
             foreach (JObject rootItem in root["item"])
             {
-                DateTime pageTimeStamp = rootItem["published"]["@value"].ToObject<DateTime>();
+                DateTime pageTimeStamp = rootItem["timeStamp"]["@value"].ToObject<DateTime>();
 
                 if (pageTimeStamp > last)
                 {

@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\packages\NuGet.Services.Build.3.0.5\build\NuGet.Services.Build.props" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.5\build\NuGet.Services.Build.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -7,10 +8,12 @@
     <ProjectGuid>{E97F23B8-ECB0-4AFA-B00C-015C39395FEF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Catalog</RootNamespace>
-    <AssemblyName>Catalog</AssemblyName>
+    <RootNamespace>NuGet.Services.Metadata.Catalog</RootNamespace>
+    <AssemblyName>NuGet.Services.Metadata.Catalog</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <NuGetPackageImportStamp>7d89f97b</NuGetPackageImportStamp>
+    <BuildPackage>true</BuildPackage>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -84,16 +87,21 @@
     <Compile Include="Collecting\Test\CheckLinksCollector.cs" />
     <Compile Include="Collecting\Test\CountCollector.cs" />
     <Compile Include="Collecting\ResolverDeleteCollector.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="GalleryIntegration\GalleryExport.cs" />
+    <Compile Include="GalleryIntegration\GalleryExportBatcher.cs" />
+    <Compile Include="GalleryIntegration\GalleryExportCatalogItem.cs" />
+    <Compile Include="GalleryIntegration\GalleryExportPackage.cs" />
     <Compile Include="Maintenance\CatalogContainer.cs" />
     <Compile Include="Maintenance\CatalogContext.cs" />
     <Compile Include="Maintenance\CatalogItem.cs" />
     <Compile Include="Maintenance\CatalogPage.cs" />
     <Compile Include="Maintenance\CatalogRoot.cs" />
     <Compile Include="Maintenance\CatalogWriter.cs" />
-    <Compile Include="Maintenance\DeletePackageVersionCatalogItem.cs" />
+    <Compile Include="Maintenance\DeletePackageCatalogItem.cs" />
     <Compile Include="Maintenance\NuspecPackageCatalogItem.cs" />
     <Compile Include="Maintenance\PackageCatalogItem.cs" />
-    <Compile Include="Maintenance\DeletePackageCatalogItem.cs" />
+    <Compile Include="Maintenance\DeleteRegistrationCatalogItem.cs" />
     <Compile Include="Collecting\ResolverCollector.cs" />
     <Compile Include="Collecting\BatchCollector.cs" />
     <Compile Include="Persistence\AzureStorage.cs" />
@@ -121,21 +129,30 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <EmbeddedResource Include="context\ContainerFrame.json" />
-    <EmbeddedResource Include="context\PackageFrame.json" />
-    <EmbeddedResource Include="context\ResolverFrame.json" />
-    <EmbeddedResource Include="context\DeletePackageFrame.json" />
+    <EmbeddedResource Include="context\Container.json" />
+    <EmbeddedResource Include="context\Package.json" />
+    <EmbeddedResource Include="context\Resolver.json" />
+    <EmbeddedResource Include="context\DeletePackage.json" />
     <None Include="packages.config" />
     <EmbeddedResource Include="schema\schema.ttl" />
     <EmbeddedResource Include="sparql\All.rq" />
-    <EmbeddedResource Include="sparql\Container.rq" />
-    <EmbeddedResource Include="sparql\ListResources.rq" />
-    <EmbeddedResource Include="sparql\Package.rq" />
     <EmbeddedResource Include="sparql\ConstructResolverGraph.rq" />
     <EmbeddedResource Include="sparql\SelectDistinctPackage.rq" />
+    <EmbeddedResource Include="sparql\SelectDeletePackage.rq" />
+    <EmbeddedResource Include="sparql\DeletePackage.rq" />
+    <EmbeddedResource Include="sparql\SelectPackageCount.rq" />
+    <EmbeddedResource Include="sparql\SelectDeleteRegistration.rq" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.5\build\NuGet.Services.Build.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.5\build\NuGet.Services.Build.props'))" />
+    <Error Condition="!Exists('..\..\packages\NuGet.Services.Build.3.0.5\build\NuGet.Services.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NuGet.Services.Build.3.0.5\build\NuGet.Services.Build.targets'))" />
+  </Target>
+  <Import Project="..\..\packages\NuGet.Services.Build.3.0.5\build\NuGet.Services.Build.targets" Condition="Exists('..\..\packages\NuGet.Services.Build.3.0.5\build\NuGet.Services.Build.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

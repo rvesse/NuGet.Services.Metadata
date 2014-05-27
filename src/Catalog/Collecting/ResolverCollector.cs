@@ -1,5 +1,5 @@
-﻿using Catalog.Helpers;
-using Catalog.Persistence;
+﻿using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using VDS.RDF;
 using VDS.RDF.Query;
 
-namespace Catalog.Collecting
+namespace NuGet.Services.Metadata.Catalog.Collecting
 {
     public class ResolverCollector : BatchCollector
     {
@@ -20,20 +20,20 @@ namespace Catalog.Collecting
         {
             Options.InternUris = false;
 
-            _resolverFrame = JObject.Parse(Utils.GetResource("context.ResolverFrame.json"));
+            _resolverFrame = JObject.Parse(Utils.GetResource("context.Resolver.json"));
+            _resolverFrame["@type"] = "Resolver";
             _storage = storage;
         }
 
-        protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items)
+        protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
         {
             List<Task<IGraph>> tasks = new List<Task<IGraph>>();
 
             foreach (JObject item in items)
             {
-                Uri itemUri = item["url"].ToObject<Uri>();
-                string type = item["@type"].ToString();
-                if (type == "Package")
+                if (Utils.IsType(context, item, Constants.Package))
                 {
+                    Uri itemUri = item["url"].ToObject<Uri>();
                     tasks.Add(client.GetGraphAsync(itemUri));
                 }
             }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Catalog.Persistence
+namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public abstract class Storage
     {
@@ -9,6 +9,7 @@ namespace Catalog.Persistence
 
         public abstract Task Save(string contentType, Uri resourceUri, string content);
         public abstract Task<string> Load(Uri resourceUri);
+        public abstract Task Delete(Uri resourceUri);
 
         public string Container
         {
@@ -40,10 +41,17 @@ namespace Catalog.Persistence
             protected set;
         }
 
+        public int DeleteCount
+        {
+            get;
+            protected set;
+        }
+
         public void ResetStatistics()
         {
             SaveCount = 0;
             LoadCount = 0;
+            DeleteCount = 0;
         }
 
         protected static string GetName(Uri uri, string baseAddress, string container)

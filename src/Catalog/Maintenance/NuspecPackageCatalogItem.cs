@@ -1,7 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Xml.Linq;
+using VDS.RDF;
 
-namespace Catalog.Maintenance
+namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     public class NuspecPackageCatalogItem : PackageCatalogItem
     {
@@ -14,7 +16,7 @@ namespace Catalog.Maintenance
             _fullName = fileInfo.FullName;
         }
 
-        protected override string GetItemName()
+        protected override string GetItemIdentity()
         {
             return _name;
         }

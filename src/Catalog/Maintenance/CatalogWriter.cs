@@ -1,10 +1,10 @@
-﻿using Catalog.Persistence;
+﻿using NuGet.Services.Metadata.Catalog.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using VDS.RDF;
 
-namespace Catalog.Maintenance
+namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     public class CatalogWriter : IDisposable
     {
@@ -41,7 +41,12 @@ namespace Catalog.Maintenance
             _batch.Add(item);
         }
 
-        public async Task Commit(DateTime timeStamp)
+        public Task Commit(IDictionary<string, string> commitUserData = null)
+        {
+            return Commit(DateTime.UtcNow, commitUserData);
+        }
+
+        public async Task Commit(DateTime timeStamp, IDictionary<string, string> commitUserData = null)
         {
             Check();
 
@@ -52,7 +57,7 @@ namespace Catalog.Maintenance
 
             string baseAddress = string.Format("{0}{1}/", _storage.BaseAddress, _storage.Container);
 
-            IDictionary<Uri, string> pageItems = new Dictionary<Uri, string>();
+            IDictionary<Uri, Tuple<Uri, IGraph>> pageItems = new Dictionary<Uri, Tuple<Uri, IGraph>>();
             List<Task> tasks = null;
             foreach (CatalogItem item in _batch)
             {
@@ -61,6 +66,7 @@ namespace Catalog.Maintenance
 
                 Uri resourceUri = new Uri(item.GetBaseAddress() + item.GetRelativeAddress());
                 string content = item.CreateContent(_context);
+                IGraph pageContent = item.CreatePageContent(_context);
 
                 if (content != null)
                 {
@@ -71,7 +77,7 @@ namespace Catalog.Maintenance
                     tasks.Add(_storage.Save("application/json", resourceUri, content));
                 }
 
-                pageItems.Add(resourceUri, item.GetItemType());
+                pageItems.Add(resourceUri, new Tuple<Uri, IGraph>(item.GetItemType(), pageContent));
             }
 
             if (tasks != null)
@@ -107,12 +113,17 @@ namespace Catalog.Maintenance
                 root.UpdatePage(pageResourceUri, timeStamp, latestPage.Item2 + pageItems.Count);
             }
 
-            foreach (KeyValuePair<Uri, string> pageItem in pageItems)
+            foreach (KeyValuePair<Uri, Tuple<Uri, IGraph>> pageItem in pageItems)
             {
-                page.Add(pageItem.Key, pageItem.Value, timeStamp);
+                page.Add(pageItem.Key, pageItem.Value.Item1, pageItem.Value.Item2, timeStamp);
             }
 
+            page.SetTimeStamp(timeStamp);
+
             await _storage.Save("application/json", pageResourceUri, page.CreateContent(_context));
+
+            root.SetCommitUserData(commitUserData);
+            root.SetTimeStamp(timeStamp);
 
             await _storage.Save("application/json", rootResourceUri, root.CreateContent(_context));
 
@@ -122,6 +133,33 @@ namespace Catalog.Maintenance
         public void Dispose()
         {
             _open = false;
+        }
+
+        public static async Task<IDictionary<string, string>> GetCommitUserData(Storage storage)
+        {
+            Uri rootResourceUri = GetRootResourceUri(storage);
+            string content = await storage.Load(rootResourceUri);
+            return CatalogRoot.GetCommitUserData(rootResourceUri, content);
+        }
+
+        public static async Task<DateTime> GetLastCommitTimeStamp(Storage storage)
+        {
+            Uri rootResourceUri = GetRootResourceUri(storage);
+            string content = await storage.Load(rootResourceUri);
+            return CatalogRoot.GetLastCommitTimeStamp(rootResourceUri, content);
+        }
+
+        public static async Task<int> GetCount(Storage storage)
+        {
+            Uri rootResourceUri = GetRootResourceUri(storage);
+            string content = await storage.Load(rootResourceUri);
+            return CatalogRoot.GetCount(rootResourceUri, content);
+        }
+
+        static Uri GetRootResourceUri(Storage storage)
+        {
+            string baseAddress = string.Format("{0}{1}/", storage.BaseAddress, storage.Container);
+            return new Uri(baseAddress + "catalog/index.json");
         }
 
         void Check()

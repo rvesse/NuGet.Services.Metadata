@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Catalog.Persistence
+namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class FileStorage : Storage
     {
@@ -101,6 +101,42 @@ namespace Catalog.Persistence
             }
 
             return null;
+        }
+
+        public override async Task Delete(Uri resourceUri)
+        {
+            DeleteCount++;
+
+            string name = GetName(resourceUri, BaseAddress, Container);
+
+            if (Verbose)
+            {
+                Console.WriteLine("load {0}", name);
+            }
+
+            string path = Path.Trim('\\') + '\\';
+
+            string folder = string.Empty;
+
+            string[] t = name.Split('/');
+            if (t.Length == 2)
+            {
+                folder = t[0];
+                name = t[1];
+            }
+
+            if (folder != string.Empty)
+            {
+                folder = folder + '\\';
+            }
+
+            string filename = path + folder + name;
+
+            FileInfo fileInfo = new FileInfo(filename);
+            if (fileInfo.Exists)
+            {
+                await Task.Run(() => { fileInfo.Delete(); });
+            }
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Catalog.Collecting.Test
+namespace NuGet.Services.Metadata.Catalog.Collecting.Test
 {
     public class DistinctPackageIdCollector : BatchCollector
     {
@@ -22,7 +22,7 @@ namespace Catalog.Collecting.Test
             get { return _result; }
         }
 
-        protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items)
+        protected override async Task ProcessBatch(CollectorHttpClient client, IList<JObject> items, JObject context)
         {
             List<Task<JObject>> tasks = new List<Task<JObject>>();
 

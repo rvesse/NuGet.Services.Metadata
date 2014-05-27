@@ -1,11 +1,12 @@
 ﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Xsl;
 using VDS.RDF;
 using VDS.RDF.Parsing;
 
-namespace Catalog.Maintenance
+namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     public abstract class PackageCatalogItem : CatalogItem
     {
@@ -17,16 +18,16 @@ namespace Catalog.Maintenance
             XDocument nuspec = NormalizeNuspecNamespace(original, context.GetXslt("xslt.normalizeNuspecNamespace.xslt"));
             IGraph graph = CreateNuspecGraph(nuspec, GetBaseAddress(), context.GetXslt("xslt.nuspec.xslt"));
 
-            JObject frame = context.GetJsonLdContext("context.PackageFrame.json", GetItemType());
+            JObject frame = context.GetJsonLdContext("context.Package.json", GetItemType());
 
             string content = Utils.CreateJson(graph, frame);
 
             return content;
         }
 
-        public override string GetItemType()
+        public override Uri GetItemType()
         {
-            return "http://nuget.org/schema#Package";
+            return Constants.Package;
         }
 
         static XDocument NormalizeNuspecNamespace(XDocument original, XslCompiledTransform xslt)

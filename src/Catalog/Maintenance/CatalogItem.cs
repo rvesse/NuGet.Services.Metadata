@@ -1,6 +1,7 @@
 ﻿using System;
+using VDS.RDF;
 
-namespace Catalog.Maintenance
+namespace NuGet.Services.Metadata.Catalog.Maintenance
 {
     public abstract class CatalogItem
     {
@@ -19,23 +20,28 @@ namespace Catalog.Maintenance
 
         public abstract string CreateContent(CatalogContext context);
 
-        public abstract string GetItemType();
+        public abstract Uri GetItemType();
 
-        protected abstract string GetItemName();
+        public virtual IGraph CreatePageContent(CatalogContext context)
+        {
+            return null;
+        }
+
+        protected abstract string GetItemIdentity();
 
         public string GetBaseAddress()
         {
-            return _baseAddress + "catalog/item/" + MakeTimestampPathComponent(_timeStamp);
+            return _baseAddress + "catalog/item/" + MakeTimeStampPathComponent(_timeStamp);
         }
 
         public string GetRelativeAddress()
         {
-            return GetItemName() + ".json";
+            return GetItemIdentity() + ".json";
         }
 
-        protected static string MakeTimestampPathComponent(DateTime timestamp)
+        protected static string MakeTimeStampPathComponent(DateTime timeStamp)
         {
-            return string.Format("{0}.{1}.{2}.{3}.{4}.{5}/", timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second);
+            return string.Format("{0}.{1}.{2}.{3}.{4}.{5}/", timeStamp.Year, timeStamp.Month, timeStamp.Day, timeStamp.Hour, timeStamp.Minute, timeStamp.Second);
         }
     }
 }
